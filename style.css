@@ -1,0 +1,30 @@
+body {
+    margin: 0px;
+    height: 100vh;
+    width: 100%;
+}
+
+svg {
+    height: 100%;
+    width: 100%;
+}
+
+.bubble {
+    padding: 15px;
+    background-color: lightgray;
+    border: 1px solid gray;
+    border-radius: 5px;
+    cursor: grab;
+    box-sizing: border-box;
+ 
+}
+
+.bubble[contenteditable='true'] {
+    cursor: auto;
+}
+
+.bubble:after
+{
+    content: '.';
+    visibility: hidden;
+}
