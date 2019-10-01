@@ -367,7 +367,7 @@ if (arr.length < 2) {
     const bubbles = JSON.parse(localStorage.getItem('bubbles'));
     const lines = JSON.parse(localStorage.getItem('lines'));
     load(bubbles, lines);
-
+    
 } else {
     lib.decompress(arr[1]).then(json => {
         load(json.bubbles, json.lines);
