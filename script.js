@@ -336,7 +336,7 @@ const save = (asJson) => {
                 bubbles: bubbleResults,
                 lines: lineResults
             }).then(output => {
-                window.location.replace(output);
+                window.location.replace("#" + output);
             });
         }
     }
