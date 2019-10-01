@@ -1,5 +1,7 @@
 const body = document.body;
 const svg = document.querySelector('svg');
+const lib = JsonUrl('lzma'); // JsonUrl is added to the window object
+let id; // The map id
 
 const uuidv4 = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -99,7 +101,7 @@ body.addEventListener('click', e => {
 
 let selection = undefined;
 
-['mouseup','touchend', 'touchcancel'].forEach( evt => {
+['mouseup', 'touchend', 'touchcancel'].forEach(evt => {
     body.addEventListener(evt, e => {
         if (selection === undefined)
             return;
@@ -123,7 +125,7 @@ let selection = undefined;
     });
 });
 
-['mousedown','touchstart'].forEach( evt => {
+['mousedown', 'touchstart'].forEach(evt => {
     body.addEventListener(evt, e => {
         const nodeName = e.target.nodeName.toLowerCase();
         if (nodeName === "div" && e.target.getAttribute('contenteditable') === "false") {
@@ -147,7 +149,7 @@ let selection = undefined;
     });
 });
 
-['mousemove','touchmove'].forEach( evt => {
+['mousemove', 'touchmove'].forEach(evt => {
     body.addEventListener(evt, e => {
         if (selection === undefined)
             return;
@@ -220,10 +222,18 @@ document.addEventListener("keyup", e => {
         save();
     }
 
+    if (e.keyCode === 83 && e.altKey) { // Save
+        lib.compress(save(true)).then(output => {
+            const url = 'https://mindmap.robinweitzel.de';
+            const win = window.open(url + '?data=' + output, '_blank');
+            win.focus();
+        });
+    }
+
     if (bubble === null)
         return;
 
-    if ((e.keyCode === 187 || e.keyCode === 189) && e.altKey) {
+    if ((e.keyCode === 187 || e.keyCode === 189) && e.altKey) { // Change size
         let fontSize = parseInt(bubble.style.fontSize.replace("px"));
 
         if (e.keyCode === 187)
@@ -238,7 +248,7 @@ document.addEventListener("keyup", e => {
     if (e.altKey) {
         let background;
         let border;
-        switch (String.fromCharCode(e.keyCode)) {
+        switch (String.fromCharCode(e.keyCode)) { // Change color
             case "N":
                 background = 'lightgray';
                 border = 'gray';
@@ -273,7 +283,7 @@ document.addEventListener("keyup", e => {
     }
 });
 
-const save = () => {
+const save = (asJson) => {
     const bubbles = document.querySelectorAll('.bubble');
     const bubbleResults = [];
     for (const bubble of bubbles) {
@@ -305,16 +315,19 @@ const save = () => {
 
         lineResults.push(result);
     }
-
-    localStorage.setItem("bubbles", JSON.stringify(bubbleResults));
-    localStorage.setItem("lines", JSON.stringify(lineResults));
+    if (asJson) {
+        return {
+            bubbles: bubbleResults,
+            lines: lineResults
+        }
+    } else {
+        localStorage.setItem("bubbles", JSON.stringify(bubbleResults));
+        localStorage.setItem("lines", JSON.stringify(lineResults));
+    }
 }
 
-const load = () => {
+const load = (bubbles, lines) => {
     try {
-        const bubbles = JSON.parse(localStorage.getItem('bubbles'));
-        const lines = JSON.parse(localStorage.getItem('lines'));
-
         const bubbleDict = {};
 
         for (const bubble of bubbles) {
@@ -348,4 +361,15 @@ const load = () => {
     }
 }
 
-load();
+const arr = window.location.href.split('?data=');
+
+if (arr.length < 2) {
+    const bubbles = JSON.parse(localStorage.getItem('bubbles'));
+    const lines = JSON.parse(localStorage.getItem('lines'));
+    load(bubbles, lines);
+
+} else {
+    lib.decompress(arr[1]).then(json => {
+        load(json.bubbles, json.lines);
+    });
+}
