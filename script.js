@@ -25,6 +25,8 @@ const createBubble = (x, y) => {
     bubble.style.top = y;
     bubble.style.position = 'absolute';
     bubble.style.fontSize = "16px";
+    bubble.style.backgroundColor = 'lightgray';
+    bubble.style.borderColor = 'gray';
     bubble.setAttribute('contenteditable', true);
 
     bubble.id = uuidv4();
@@ -186,6 +188,8 @@ body.addEventListener('dblclick', e => {
 });
 
 document.addEventListener("keyup", e => {
+    const bubble = document.querySelector('.bubble[contenteditable="true"]');
+
     if (e.keyCode == 46) {
         const line = document.querySelector('line[stroke="blue"]');
         if (line !== null) {
@@ -193,8 +197,6 @@ document.addEventListener("keyup", e => {
             removeElement(line.end.lines.end, line);
             svg.removeChild(line);
         }
-
-        const bubble = document.querySelector('.bubble[contenteditable="true"]');
 
         if (bubble !== null) {
             for (const line of bubble.lines.start) {
@@ -212,19 +214,55 @@ document.addEventListener("keyup", e => {
         save();
     }
 
-    if (e.keyCode === 187 || e.keyCode === 189) {
-        const bubble = document.querySelector('.bubble[contenteditable="true"]');
+    if (bubble === null)
+        return;
 
-        if (bubble !== null) {
-            let fontSize = parseInt(bubble.style.fontSize.replace("px"));
+    if ((e.keyCode === 187 || e.keyCode === 189) && e.altKey) {
+        let fontSize = parseInt(bubble.style.fontSize.replace("px"));
 
-            if (e.keyCode === 187)
-                fontSize += 2;
-            else
-                fontSize -= 2;
+        if (e.keyCode === 187)
+            fontSize += 2;
+        else
+            fontSize -= 2;
 
-            bubble.style.fontSize = fontSize + "px";
+        bubble.style.fontSize = fontSize + "px";
+        save();
+    }
+
+    if (e.altKey) {
+        let background;
+        let border;
+        switch (String.fromCharCode(e.keyCode)) {
+            case "N":
+                background = 'lightgray';
+                border = 'gray';
+                break;
+            case "G":
+                background = 'lightgreen';
+                border = 'green';
+                break;
+            case "R":
+                background = 'red';
+                border = 'darkred';
+                break;
+            case "B":
+                background = 'lightblue';
+                border = 'blue';
+                break;
+            case "O":
+                background = 'orange';
+                border = 'darkorange';
+                break;
+            case "Y":
+                background = 'lightyellow';
+                border = 'yellow';
+                break;
+            default:
+                return;
         }
+
+        bubble.style.backgroundColor = background;
+        bubble.style.borderColor = border;
         save();
     }
 });
@@ -238,7 +276,9 @@ const save = () => {
             x: bubble.style.left,
             y: bubble.style.top,
             size: bubble.style.fontSize,
-            text: bubble.innerText
+            text: bubble.innerText,
+            color: bubble.style.backgroundColor,
+            border: bubble.style.borderColor
         }
 
         bubbleResults.push(result);
@@ -271,10 +311,12 @@ const load = () => {
 
         const bubbleDict = {};
 
-        for(const bubble of bubbles) {
+        for (const bubble of bubbles) {
             const b = createBubble(bubble.x, bubble.y);
             b.innerText = bubble.text;
             b.style.fontSize = bubble.size;
+            b.style.backgroundColor = bubble.background || "lightgray";
+            b.style.borderColor = bubble.border || "gray";
             b.id = bubble.id;
 
             bubbleDict[b.id] = b;
@@ -282,7 +324,7 @@ const load = () => {
             body.appendChild(b);
         }
 
-        for(const line of lines) {
+        for (const line of lines) {
             const l = createLine(line.x1, line.y1);
             l.setAttribute("x2", line.x2);
             l.setAttribute("y2", line.y2);
@@ -295,7 +337,7 @@ const load = () => {
 
             svg.appendChild(l);
         }
-    } catch(e) {
+    } catch (e) {
 
     }
 }

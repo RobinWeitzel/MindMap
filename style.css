@@ -11,8 +11,8 @@ svg {
 
 .bubble {
     padding: 15px;
-    background-color: lightgray;
-    border: 1px solid gray;
+    border-width: 1px;
+    border-style: solid;
     border-radius: 5px;
     cursor: grab;
     box-sizing: border-box;
