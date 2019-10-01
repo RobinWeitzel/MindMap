@@ -99,74 +99,80 @@ body.addEventListener('click', e => {
 
 let selection = undefined;
 
-body.addEventListener('mouseup', e => {
-    if (selection === undefined)
-        return;
+['mouseup','touchend', 'touchcancel'].forEach( evt => {
+    body.addEventListener(evt, e => {
+        if (selection === undefined)
+            return;
 
-    if (selection.type === "line") {
-        const end = document.querySelector('.bubble[mouseover="true"]');
+        if (selection.type === "line") {
+            const end = document.querySelector('.bubble[mouseover="true"]');
 
-        if (end === null || end === selection.start) {
-            svg.removeChild(selection.line);
-        } else {
-            selection.start.lines.start.push(selection.line);
-            end.lines.end.push(selection.line);
-            selection.line.start = selection.start;
-            selection.line.end = end;
+            if (end === null || end === selection.start) {
+                svg.removeChild(selection.line);
+            } else {
+                selection.start.lines.start.push(selection.line);
+                end.lines.end.push(selection.line);
+                selection.line.start = selection.start;
+                selection.line.end = end;
+            }
         }
-    }
 
-    save();
+        save();
 
-    selection = undefined;
+        selection = undefined;
+    });
 });
 
-body.addEventListener('mousedown', e => {
-    const nodeName = e.target.nodeName.toLowerCase();
-    if (nodeName === "div" && e.target.getAttribute('contenteditable') === "false") {
-        if (e.button === 0) { // left mouse
-            selection = {
-                bubble: e.target,
-                x: e.target.getBoundingClientRect().x - e.clientX,
-                y: e.target.getBoundingClientRect().y - e.clientY,
-                type: "drag"
-            };
-        } else if (e.button === 2) { // right mouse
-            const line = createLine(e.clientX, e.clientY);
-            svg.appendChild(line);
-            selection = {
-                line: line,
-                start: e.target,
-                type: "line"
-            };
+['mousedown','touchstart'].forEach( evt => {
+    body.addEventListener(evt, e => {
+        const nodeName = e.target.nodeName.toLowerCase();
+        if (nodeName === "div" && e.target.getAttribute('contenteditable') === "false") {
+            if (e.button === 0) { // left mouse
+                selection = {
+                    bubble: e.target,
+                    x: e.target.getBoundingClientRect().x - e.clientX,
+                    y: e.target.getBoundingClientRect().y - e.clientY,
+                    type: "drag"
+                };
+            } else if (e.button === 2) { // right mouse
+                const line = createLine(e.clientX, e.clientY);
+                svg.appendChild(line);
+                selection = {
+                    line: line,
+                    start: e.target,
+                    type: "line"
+                };
+            }
         }
-    }
+    });
 });
 
-body.addEventListener('mousemove', e => {
-    if (selection === undefined)
-        return;
+['mousemove','touchmove'].forEach( evt => {
+    body.addEventListener(evt, e => {
+        if (selection === undefined)
+            return;
 
-    const x = e.clientX + selection.x + "px";
-    const y = e.clientY + selection.y + "px";
+        const x = e.clientX + selection.x + "px";
+        const y = e.clientY + selection.y + "px";
 
-    if (selection.type === "drag") {
-        selection.bubble.style.left = x;
-        selection.bubble.style.top = y;
+        if (selection.type === "drag") {
+            selection.bubble.style.left = x;
+            selection.bubble.style.top = y;
 
-        for (const line of selection.bubble.lines.start) {
-            line.setAttribute("x1", e.clientX);
-            line.setAttribute("y1", e.clientY);
+            for (const line of selection.bubble.lines.start) {
+                line.setAttribute("x1", e.clientX);
+                line.setAttribute("y1", e.clientY);
+            }
+
+            for (const line of selection.bubble.lines.end) {
+                line.setAttribute("x2", e.clientX);
+                line.setAttribute("y2", e.clientY);
+            }
+        } else if (selection.type === "line") {
+            selection.line.setAttribute("x2", e.clientX);
+            selection.line.setAttribute("y2", e.clientY);
         }
-
-        for (const line of selection.bubble.lines.end) {
-            line.setAttribute("x2", e.clientX);
-            line.setAttribute("y2", e.clientY);
-        }
-    } else if (selection.type === "line") {
-        selection.line.setAttribute("x2", e.clientX);
-        selection.line.setAttribute("y2", e.clientY);
-    }
+    });
 });
 
 body.addEventListener('dblclick', e => {
