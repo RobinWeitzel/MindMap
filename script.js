@@ -330,6 +330,16 @@ const save = (asJson) => {
     } else {
         localStorage.setItem(storageType + "bubbles", JSON.stringify(bubbleResults));
         localStorage.setItem(storageType + "lines", JSON.stringify(lineResults));
+
+        if(storageType === "url_") {
+            lib.compress({
+                bubbles: bubbleResults,
+                lines: lineResults
+            }).then(output => {
+                const url = window.location.href.split('?')[0];
+                window.history.pushState({}, "Mind Map", url + '?data=' + output);
+            });
+        }
     }
 }
 
