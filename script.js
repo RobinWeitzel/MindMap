@@ -225,7 +225,7 @@ document.addEventListener("keyup", e => {
     if (e.keyCode === 83 && e.altKey) { // Save
         lib.compress(save(true)).then(output => {
             const url = 'https://mindmap.robinweitzel.de';
-            const win = window.open(url + '?data=' + output, '_blank');
+            const win = window.open(url + '#' + output, '_blank');
             win.focus();
         });
     }
@@ -336,8 +336,7 @@ const save = (asJson) => {
                 bubbles: bubbleResults,
                 lines: lineResults
             }).then(output => {
-                const url = window.location.href.split('?')[0];
-                window.history.pushState({}, "Mind Map", url + '?data=' + output);
+                window.location.hash = output;
             });
         }
     }
@@ -388,7 +387,7 @@ const load = (bubbles, lines) => {
     }
 }
 
-const arr = window.location.href.split('?data=');
+const arr = window.location.href.split('#');
 
 if (arr.length < 2) {
     const bubbles = JSON.parse(localStorage.getItem('bubbles'));
