@@ -1,7 +1,7 @@
 const body = document.body;
 const svg = document.querySelector('svg');
 const lib = JsonUrl('lzma'); // JsonUrl is added to the window object
-let id; // The map id
+let storageType = "";
 
 const uuidv4 = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -230,6 +230,13 @@ document.addEventListener("keyup", e => {
         });
     }
 
+    if (e.keyCode === 76 && e.altKey) { // Load
+        storageType = "url_";
+        const bubbles = JSON.parse(localStorage.getItem(storageType + 'bubbles'));
+        const lines = JSON.parse(localStorage.getItem(storageType + 'lines'));
+        load(bubbles, lines);
+    }
+
     if (bubble === null)
         return;
 
@@ -321,13 +328,23 @@ const save = (asJson) => {
             lines: lineResults
         }
     } else {
-        localStorage.setItem("bubbles", JSON.stringify(bubbleResults));
-        localStorage.setItem("lines", JSON.stringify(lineResults));
+        localStorage.setItem(storageType + "bubbles", JSON.stringify(bubbleResults));
+        localStorage.setItem(storageType + "lines", JSON.stringify(lineResults));
     }
 }
 
 const load = (bubbles, lines) => {
     try {
+        const oldBubbles = document.querySelectorAll('.bubble');
+        for(const bubble of oldBubbles) {
+            body.removeChild(bubble);
+        }
+
+        const oldLines = document.querySelectorAll('line');
+        for(const line of oldLines) {
+            svg.removeChild(line);
+        }
+          
         const bubbleDict = {};
 
         for (const bubble of bubbles) {
@@ -367,8 +384,8 @@ if (arr.length < 2) {
     const bubbles = JSON.parse(localStorage.getItem('bubbles'));
     const lines = JSON.parse(localStorage.getItem('lines'));
     load(bubbles, lines);
-    
 } else {
+    storageType = "url_"
     lib.decompress(arr[1]).then(json => {
         load(json.bubbles, json.lines);
     });
