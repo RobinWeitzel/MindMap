@@ -315,7 +315,7 @@ const load = () => {
             const b = createBubble(bubble.x, bubble.y);
             b.innerText = bubble.text;
             b.style.fontSize = bubble.size;
-            b.style.backgroundColor = bubble.background || "lightgray";
+            b.style.backgroundColor = bubble.color || "lightgray";
             b.style.borderColor = bubble.border || "gray";
             b.id = bubble.id;
 
