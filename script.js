@@ -145,6 +145,14 @@ let selection = undefined;
                     type: "line"
                 };
             }
+        } else {
+            if (e.button === 0) { // left mouse
+                selection = {
+                    x: e.clientX,
+                    y: e.clientY,
+                    type: "move"
+                };
+            }
         }
     });
 });
@@ -154,10 +162,10 @@ let selection = undefined;
         if (selection === undefined)
             return;
 
-        const x = e.clientX + selection.x + "px";
-        const y = e.clientY + selection.y + "px";
+        if (selection.type === "drag") {    
+            const x = e.clientX + selection.x + "px";
+            const y = e.clientY + selection.y + "px";
 
-        if (selection.type === "drag") {
             selection.bubble.style.left = x;
             selection.bubble.style.top = y;
 
@@ -173,6 +181,32 @@ let selection = undefined;
         } else if (selection.type === "line") {
             selection.line.setAttribute("x2", e.clientX);
             selection.line.setAttribute("y2", e.clientY);
+        } else if(selection.type === "move") {
+            const bubbles = document.querySelectorAll('.bubble');
+            const lines = document.querySelectorAll('line');
+
+            const x = e.clientX;
+            const y = e.clientY;
+
+            for(const bubble of bubbles) {
+                bubble.style.left = bubble.getBoundingClientRect().x + (x - selection.x) + "px";
+                bubble.style.top = bubble.getBoundingClientRect().y + (y - selection.y) + "px";
+            }
+
+            for(const line of lines) {
+                const x1 = parseFloat(line.getAttribute("x1")) + (x - selection.x);
+                const x2 = parseFloat(line.getAttribute("x2")) + (x - selection.x);
+                const y1 = parseFloat(line.getAttribute("y1")) + (y - selection.y);
+                const y2 = parseFloat(line.getAttribute("y2")) + (y - selection.y);
+
+                line.setAttribute("x1", x1);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y1", y1);
+                line.setAttribute("y2", y2);
+            }
+
+            selection.x = x;
+            selection.y = y;
         }
     });
 });
@@ -354,7 +388,7 @@ const load = (bubbles, lines) => {
             svg.removeChild(line);
         }
           
-        const bubbleDict = {};
+    const bubbleDict = {};
 
         for (const bubble of bubbles) {
             const b = createBubble(bubble.x, bubble.y);
