@@ -2,6 +2,7 @@ const body = document.body;
 const svg = document.querySelector('svg');
 const lib = JsonUrl('lzma'); // JsonUrl is added to the window object
 let storageType = "";
+let id;
 
 const uuidv4 = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -9,7 +10,6 @@ const uuidv4 = () => {
         return v.toString(16);
     });
 }
-
 
 const removeElement = (array, element) => {
     const index = array.indexOf(element);
@@ -87,6 +87,10 @@ const clearSelection = () => {
 }
 
 body.addEventListener('click', e => {
+    const dialog = e.target.closest('.dialog');
+    if (dialog) 
+        return;
+
     const bubbles = document.querySelectorAll('.bubble[contenteditable="true"]');
     for (const bubble of bubbles) {
         if (e.target !== bubble)
@@ -127,6 +131,9 @@ let selection = undefined;
 
 ['mousedown', 'touchstart'].forEach(evt => {
     body.addEventListener(evt, e => {
+        const dialog = e.target.closest('.dialog');
+        if (dialog)
+            return;
         const nodeName = e.target.nodeName.toLowerCase();
         if (nodeName === "div" && e.target.getAttribute('contenteditable') === "false") {
             if (e.button === 0) { // left mouse
@@ -162,7 +169,11 @@ let selection = undefined;
         if (selection === undefined)
             return;
 
-        if (selection.type === "drag") {    
+        const dialog = e.target.closest('.dialog');
+        if (dialog)
+            return;
+
+        if (selection.type === "drag") {
             const x = e.clientX + selection.x + "px";
             const y = e.clientY + selection.y + "px";
 
@@ -181,19 +192,19 @@ let selection = undefined;
         } else if (selection.type === "line") {
             selection.line.setAttribute("x2", e.clientX);
             selection.line.setAttribute("y2", e.clientY);
-        } else if(selection.type === "move") {
+        } else if (selection.type === "move") {
             const bubbles = document.querySelectorAll('.bubble');
             const lines = document.querySelectorAll('line');
 
             const x = e.clientX;
             const y = e.clientY;
 
-            for(const bubble of bubbles) {
+            for (const bubble of bubbles) {
                 bubble.style.left = bubble.getBoundingClientRect().x + (x - selection.x) + "px";
                 bubble.style.top = bubble.getBoundingClientRect().y + (y - selection.y) + "px";
             }
 
-            for(const line of lines) {
+            for (const line of lines) {
                 const x1 = parseFloat(line.getAttribute("x1")) + (x - selection.x);
                 const x2 = parseFloat(line.getAttribute("x2")) + (x - selection.x);
                 const y1 = parseFloat(line.getAttribute("y1")) + (y - selection.y);
@@ -229,6 +240,21 @@ body.addEventListener('dblclick', e => {
     }
 });
 
+const createNewMap = () => {
+    id = uuidv4();
+    load([], []);
+    save();
+    localStorage.setItem('current', id);
+}
+
+const setColor = (bubble, background, border) => {
+    if (!bubble)
+        return;
+
+    bubble.style.backgroundColor = background;
+    bubble.style.borderColor = border;
+}
+
 document.addEventListener("keyup", e => {
     const bubble = document.querySelector('.bubble[contenteditable="true"]');
 
@@ -256,7 +282,105 @@ document.addEventListener("keyup", e => {
         save();
     }
 
-    if (e.keyCode === 83 && e.altKey) { // Save
+    if (!e.altKey)
+        return;
+
+    switch (String.fromCharCode(e.keyCode)) {
+        case "N": // New
+            createNewMap();
+            break;
+        case "O": // Open
+            const oldDialog = document.querySelector('.dialog');
+            if (oldDialog)
+                body.removeChild(oldDialog);
+
+            const dialog = document.createElement('div');
+            dialog.classList.add('dialog');
+            body.appendChild(dialog);
+
+            let row = 0;
+            let column = 0;
+
+            for (const key of Object.keys(localStorage)) {
+                if (key === "current")
+                    continue;
+
+                const container = document.createElement('div');
+                container.style.top = -33 + row * 33 + "vh";
+                container.style.left = column * 33 + "vw";
+
+                column++;
+                if (column === 3) {
+                    column = 0;
+                    row++;
+                }
+
+                container.classList.add('container');
+                container.appendChild(document.createElementNS("http://www.w3.org/2000/svg", 'svg'));
+                dialog.appendChild(container);
+
+                lib.decompress(localStorage[key]).then(result => {
+                    load(result.bubbles || [], result.lines || [], container);
+
+                    container.onclick = e => {
+                            load(result.bubbles || [], result.lines || []);
+                            localStorage.setItem('current', result.id);
+                            id = result.id;
+                            window.location.replace('#' + localStorage[key]);
+                            body.removeChild(dialog);
+                    };
+                    container.oncontextmenu = e => {
+                        if(confirm("Really delete this mind map?")) {
+                            localStorage.removeItem(result.id);
+                            if(id === result.id) {
+                                localStorage.removeItem('current');
+                            }
+            
+                            dialog.removeChild(container);
+                        }
+                    }
+                });
+            }
+            break;
+        case "G":
+            setColor(bubble, 'lightgreen', 'green');
+            save();
+            break;
+        case "R":
+            setColor(bubble, 'red', 'darkred');
+            save();
+            break;
+        case "B":
+            setColor(bubble, 'lightblue', 'blue');
+            save();
+            break;
+        case "O":
+            setColor(bubble, 'orange', 'darkorange');
+            save();
+            break;
+        case "Y":
+            setColor(bubble, 'lightyellow', 'yellow');
+            save();
+            break;
+        default:
+            if ((e.keyCode === 187 || e.keyCode === 189) && bubble) { // Change size
+                let fontSize = parseInt(bubble.style.fontSize.replace("px"));
+        
+                if (e.keyCode === 187)
+                    fontSize += 2;
+                else
+                    fontSize -= 2;
+        
+                bubble.style.fontSize = fontSize + "px";
+                save();
+            } else {
+                setColor(bubble, 'lightgray', 'gray');
+                save();
+            }
+    }
+
+
+    /*if (e.keyCode === 83) { // Save
         lib.compress(save(true)).then(output => {
             const url = 'https://mindmap.robinweitzel.de';
             const win = window.open(url + '#' + output, '_blank');
@@ -290,7 +414,7 @@ document.addEventListener("keyup", e => {
         let background;
         let border;
         switch (String.fromCharCode(e.keyCode)) { // Change color
-            case "N":
+            case "U":
                 background = 'lightgray';
                 border = 'gray';
                 break;
@@ -321,11 +445,11 @@ document.addEventListener("keyup", e => {
         bubble.style.backgroundColor = background;
         bubble.style.borderColor = border;
         save();
-    }
+    }*/
 });
 
-const save = (asJson) => {
-    const bubbles = document.querySelectorAll('.bubble');
+const save = () => {
+    const bubbles = document.querySelectorAll('body > .bubble');
     const bubbleResults = [];
     for (const bubble of bubbles) {
         const result = {
@@ -341,7 +465,7 @@ const save = (asJson) => {
         bubbleResults.push(result);
     }
 
-    const lines = document.querySelectorAll('line');
+    const lines = document.querySelectorAll('#body-svg > line');
     const lineResults = [];
     for (const line of lines) {
         const result = {
@@ -356,39 +480,33 @@ const save = (asJson) => {
 
         lineResults.push(result);
     }
-    if (asJson) {
-        return {
-            bubbles: bubbleResults,
-            lines: lineResults
-        }
-    } else {
-        localStorage.setItem(storageType + "bubbles", JSON.stringify(bubbleResults));
-        localStorage.setItem(storageType + "lines", JSON.stringify(lineResults));
 
-        if(storageType === "url_") {
-            lib.compress({
-                bubbles: bubbleResults,
-                lines: lineResults
-            }).then(output => {
-                window.location.replace("#" + output);
-            });
-        }
-    }
+    lib.compress({
+        id: id,
+        bubbles: bubbleResults,
+        lines: lineResults
+    }).then(hash => {
+        localStorage.setItem(id, hash);
+        window.location.replace("#" + hash);
+    });
+
 }
 
-const load = (bubbles, lines) => {
+const load = (bubbles, lines, target) => {
     try {
-        const oldBubbles = document.querySelectorAll('.bubble');
-        for(const bubble of oldBubbles) {
-            body.removeChild(bubble);
+        target = target || body;
+        const svg = target.querySelector('svg');
+        const oldBubbles = target.querySelectorAll('body > .bubble');
+        for (const bubble of oldBubbles) {
+            target.removeChild(bubble);
         }
 
-        const oldLines = document.querySelectorAll('line');
-        for(const line of oldLines) {
+        const oldLines = svg.querySelectorAll('line');
+        for (const line of oldLines) {
             svg.removeChild(line);
         }
-          
-    const bubbleDict = {};
+
+        const bubbleDict = {};
 
         for (const bubble of bubbles) {
             const b = createBubble(bubble.x, bubble.y);
@@ -400,7 +518,7 @@ const load = (bubbles, lines) => {
 
             bubbleDict[b.id] = b;
 
-            body.appendChild(b);
+            target.appendChild(b);
         }
 
         for (const line of lines) {
@@ -424,12 +542,20 @@ const load = (bubbles, lines) => {
 const arr = window.location.href.split('#');
 
 if (arr.length < 2) {
-    const bubbles = JSON.parse(localStorage.getItem('bubbles'));
-    const lines = JSON.parse(localStorage.getItem('lines'));
-    load(bubbles, lines);
+    id = localStorage.getItem('current');
+
+    if (!id) {
+        createNewMap();
+    } else {
+        lib.decompress(localStorage[id]).then(json => {
+            load(json.bubbles, json.lines);
+        });
+
+        window.location.replace('#' + localStorage[id]);
+    }
 } else {
-    storageType = "url_"
     lib.decompress(arr[1]).then(json => {
+        id = json.id || uuidv4();
         load(json.bubbles, json.lines);
     });
 }
