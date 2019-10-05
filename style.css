@@ -43,6 +43,7 @@ svg {
     right: 0;
     bottom: 0;
     background-color: white;
+    z-index: 99;
 }
 
 .container {

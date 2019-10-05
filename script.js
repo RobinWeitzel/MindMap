@@ -282,6 +282,12 @@ document.addEventListener("keyup", e => {
         save();
     }
 
+    if(e.keyCode === 27) { // escape
+        const dialog = document.querySelector('.dialog');
+        if(dialog)
+            body.removeChild(dialog);
+    }
+
     if (!e.altKey)
         return;
 
@@ -333,7 +339,17 @@ document.addEventListener("keyup", e => {
                         if(confirm("Really delete this mind map?")) {
                             localStorage.removeItem(result.id);
                             if(id === result.id) {
-                                localStorage.removeItem('current');
+                                if(Object.keys(localStorage).filter(k => k !== 'current').length > 0) {
+                                    id = Object.keys(localStorage).filter(k => k !== 'current')[0];
+                                    localStorage.setItem('current', id);
+                                    window.location.replace('#' + localStorage[id]);
+                                    lib.decompress(localStorage[id]).then(json => {
+                                        load(json.bubbles, json.lines);
+                                    });
+                                } else {
+                                    createNewMap();
+                                    body.removeChild(dialog);
+                                }
                             }
             
                             dialog.removeChild(container);
@@ -378,74 +394,6 @@ document.addEventListener("keyup", e => {
                 save();
             }
     }
-
-
-    /*if (e.keyCode === 83) { // Save
-        lib.compress(save(true)).then(output => {
-            const url = 'https://mindmap.robinweitzel.de';
-            const win = window.open(url + '#' + output, '_blank');
-            win.focus();
-        });
-    }
-
-    if (e.keyCode === 76 && e.altKey) { // Load
-        storageType = "url_";
-        const bubbles = JSON.parse(localStorage.getItem(storageType + 'bubbles'));
-        const lines = JSON.parse(localStorage.getItem(storageType + 'lines'));
-        load(bubbles, lines);
-    }
-
-    if (bubble === null)
-        return;
-
-    if ((e.keyCode === 187 || e.keyCode === 189) && e.altKey) { // Change size
-        let fontSize = parseInt(bubble.style.fontSize.replace("px"));
-
-        if (e.keyCode === 187)
-            fontSize += 2;
-        else
-            fontSize -= 2;
-
-        bubble.style.fontSize = fontSize + "px";
-        save();
-    }
-
-    if (e.altKey) {
-        let background;
-        let border;
-        switch (String.fromCharCode(e.keyCode)) { // Change color
-            case "U":
-                background = 'lightgray';
-                border = 'gray';
-                break;
-            case "G":
-                background = 'lightgreen';
-                border = 'green';
-                break;
-            case "R":
-                background = 'red';
-                border = 'darkred';
-                break;
-            case "B":
-                background = 'lightblue';
-                border = 'blue';
-                break;
-            case "O":
-                background = 'orange';
-                border = 'darkorange';
-                break;
-            case "Y":
-                background = 'lightyellow';
-                border = 'yellow';
-                break;
-            default:
-                return;
-        }
-
-        bubble.style.backgroundColor = background;
-        bubble.style.borderColor = border;
-        save();
-    }*/
 });
 
 const save = () => {
