@@ -88,7 +88,7 @@ const clearSelection = () => {
 
 body.addEventListener('click', e => {
     const dialog = e.target.closest('.dialog');
-    if (dialog) 
+    if (dialog)
         return;
 
     const bubbles = document.querySelectorAll('.bubble[contenteditable="true"]');
@@ -282,30 +282,65 @@ document.addEventListener("keyup", e => {
         save();
     }
 
-    if(e.keyCode === 27) { // escape
+    if (e.keyCode === 27) { // escape
         const dialog = document.querySelector('.dialog');
-        if(dialog)
+        if (dialog)
             body.removeChild(dialog);
     }
 
     if (!e.altKey)
         return;
 
-    switch (String.fromCharCode(e.keyCode)) {
-        case "N": // New
+    switch (e.keyCode) {
+        case 49:
+            setColor(bubble, 'lightgray', 'gray');
+            save();
+            break;
+        case 50:
+            setColor(bubble, 'lightgreen', 'green');
+            save();
+            break;
+        case 51:
+            setColor(bubble, 'red', 'darkred');
+            save();
+            break;
+        case 52:
+            setColor(bubble, 'lightblue', 'blue');
+            save();
+            break;
+        case 53:
+            setColor(bubble, 'orange', 'darkorange');
+            save();
+            break;
+        case 54:
+            setColor(bubble, 'lightyellow', 'yellow');
+            save();
+            break;
+        case 78: // N: New
             createNewMap();
             break;
-        case "O": // Open
+        case 79: // O: Open
             const oldDialog = document.querySelector('.dialog');
             if (oldDialog)
                 body.removeChild(oldDialog);
 
             const dialog = document.createElement('div');
             dialog.classList.add('dialog');
+            const container = document.createElement('div');
+            container.style.left = "35px";
+            container.id = 'dialog-explanation';
+            container.innerHTML = `
+            <h1 style="margin-bottom: 0px;">Mind Mapping Tool</h1>
+            <ul style="margin-top: 10px;">
+                <li>Select mind map by left clicking</li>
+                <li>Delete mind map by right clicking</li>
+            </ul>`;
+
+            dialog.appendChild(container);
             body.appendChild(dialog);
 
             let row = 0;
-            let column = 0;
+            let column = 1;
 
             for (const key of Object.keys(localStorage)) {
                 if (key === "current")
@@ -329,17 +364,17 @@ document.addEventListener("keyup", e => {
                     load(result.bubbles || [], result.lines || [], container);
 
                     container.onclick = e => {
-                            load(result.bubbles || [], result.lines || []);
-                            localStorage.setItem('current', result.id);
-                            id = result.id;
-                            window.location.replace('#' + localStorage[key]);
-                            body.removeChild(dialog);
+                        load(result.bubbles || [], result.lines || []);
+                        localStorage.setItem('current', result.id);
+                        id = result.id;
+                        window.location.replace('#' + localStorage[key]);
+                        body.removeChild(dialog);
                     };
                     container.oncontextmenu = e => {
-                        if(confirm("Really delete this mind map?")) {
+                        if (confirm("Really delete this mind map?")) {
                             localStorage.removeItem(result.id);
-                            if(id === result.id) {
-                                if(Object.keys(localStorage).filter(k => k !== 'current').length > 0) {
+                            if (id === result.id) {
+                                if (Object.keys(localStorage).filter(k => k !== 'current').length > 0) {
                                     id = Object.keys(localStorage).filter(k => k !== 'current')[0];
                                     localStorage.setItem('current', id);
                                     window.location.replace('#' + localStorage[id]);
@@ -351,48 +386,21 @@ document.addEventListener("keyup", e => {
                                     body.removeChild(dialog);
                                 }
                             }
-            
+
                             dialog.removeChild(container);
                         }
                     }
                 });
             }
             break;
-        case "G":
-            setColor(bubble, 'lightgreen', 'green');
+        case 187:
+            bubble.style.fontSize = parseInt(bubble.style.fontSize.replace("px")) + 2 + "px";
             save();
             break;
-        case "R":
-            setColor(bubble, 'red', 'darkred');
+        case 189:
+            bubble.style.fontSize = parseInt(bubble.style.fontSize.replace("px")) - 2 + "px";
             save();
             break;
-        case "B":
-            setColor(bubble, 'lightblue', 'blue');
-            save();
-            break;
-        case "O":
-            setColor(bubble, 'orange', 'darkorange');
-            save();
-            break;
-        case "Y":
-            setColor(bubble, 'lightyellow', 'yellow');
-            save();
-            break;
-        default:
-            if ((e.keyCode === 187 || e.keyCode === 189) && bubble) { // Change size
-                let fontSize = parseInt(bubble.style.fontSize.replace("px"));
-        
-                if (e.keyCode === 187)
-                    fontSize += 2;
-                else
-                    fontSize -= 2;
-        
-                bubble.style.fontSize = fontSize + "px";
-                save();
-            } else {
-                setColor(bubble, 'lightgray', 'gray');
-                save();
-            }
     }
 });
 
@@ -503,7 +511,12 @@ if (arr.length < 2) {
     }
 } else {
     lib.decompress(arr[1]).then(json => {
-        id = json.id || uuidv4();
-        load(json.bubbles, json.lines);
+        id = json.id;
+        if (!id) {
+            createNewMap();
+        } else {
+            localStorage.setItem('current', id);
+            load(json.bubbles, json.lines);
+        }
     });
 }

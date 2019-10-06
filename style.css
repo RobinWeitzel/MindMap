@@ -58,3 +58,8 @@ svg {
 .container:hover {
     background-color: rgb(228, 228, 228);
 }
+
+#dialog-explanation {
+    color: gray;
+    position: absolute;
+}
