@@ -338,6 +338,8 @@ document.addEventListener("keyup", e => {
             break;
         case 78: // N: New
             createNewMap();
+            if (document.querySelector('.dialog'))
+                body.removeChild(document.querySelector('.dialog'));
             break;
         case 79: // O: Open
             const oldDialog = document.querySelector('.dialog');
@@ -357,7 +359,7 @@ document.addEventListener("keyup", e => {
             </ul>`;
 
             dialog.appendChild(container);
-            body.appendChild(dialog);
+            body.insertBefore(dialog, outerContainer);
 
             let row = 0;
             let column = 1;
@@ -367,8 +369,8 @@ document.addEventListener("keyup", e => {
                     continue;
 
                 const container = document.createElement('div');
-                container.style.top = -324 + row * 324 + "px";
-                container.style.left = column * 576 + "px";
+                container.style.top = -360 + row * 324 + "px";
+                container.style.left = 50 + column * 576 + "px";
 
                 column++;
                 if (column === 3) {
