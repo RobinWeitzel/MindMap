@@ -17,14 +17,14 @@ svg {
     border-radius: 5px;
     cursor: grab;
     box-sizing: border-box;
- 
+    white-space: nowrap;
 }
 
 .bubble[contenteditable='true'] {
     cursor: auto;
 }
 
-.bubble:after
+.bubble:empty:after
 {
     content: '.';
     visibility: hidden;
