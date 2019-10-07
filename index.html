@@ -9,21 +9,23 @@
     <title>Mind Map</title>
 </head>
 <body oncontextmenu="return false;">
-    <div id="explanation">
-        <h1 style="margin-bottom: 0px;">Mind Mapping Tool</h1>
-        <ul style="margin-top: 10px;">
-            <li>Double click to create and edit elements</li>
-            <li>Drag with left mouse to create connections</li>
-            <li>Delete objects via the delete-key</li>
-            <li>Change text size via "alt +" and "alt -"</li>
-            <li>Change color via "alt &lt;num-key&gt;" (i.e. "alt 1")</li>
-            <li>Create a new mind map with "alt n"</li>
-            <li>Open an existing mind map with "alt o"</li>
-            <li>Share mind maps by just copying the URL</li>
-        </ul>
+    <div id="outer-container">
+        <div id="explanation">
+            <h1 style="margin-bottom: 0px;">Mind Mapping Tool</h1>
+            <ul style="margin-top: 10px;">
+                <li>Double click to create and edit elements</li>
+                <li>Drag with left mouse to create connections</li>
+                <li>Delete objects via the delete-key</li>
+                <li>Change text size via "alt +" and "alt -"</li>
+                <li>Change color via "alt &lt;num-key&gt;" (i.e. "alt 1")</li>
+                <li>Create a new mind map with "alt n"</li>
+                <li>Open an existing mind map with "alt o"</li>
+                <li>Share mind maps by just copying the URL</li>
+            </ul>
+        </div>
+        <svg id="body-svg">
+        </svg>
     </div>
-    <svg id="body-svg">
-    </svg>
     <script type="text/javascript" src="libs/json-url.js"></script>
     <script src="script.js"></script>
 </body>

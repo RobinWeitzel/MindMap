@@ -1,4 +1,5 @@
 const body = document.body;
+const outerContainer = document.getElementById('outer-container');
 const svg = document.querySelector('svg');
 const lib = JsonUrl('lzma'); // JsonUrl is added to the window object
 let storageType = "";
@@ -135,22 +136,24 @@ let selection = undefined;
         if (dialog)
             return;
         const nodeName = e.target.nodeName.toLowerCase();
-        if (nodeName === "div" && e.target.getAttribute('contenteditable') === "false") {
-            if (e.button === 0) { // left mouse
-                selection = {
-                    bubble: e.target,
-                    x: e.target.getBoundingClientRect().x - e.clientX,
-                    y: e.target.getBoundingClientRect().y - e.clientY,
-                    type: "drag"
-                };
-            } else if (e.button === 2) { // right mouse
-                const line = createLine(e.clientX, e.clientY);
-                svg.appendChild(line);
-                selection = {
-                    line: line,
-                    start: e.target,
-                    type: "line"
-                };
+        if (nodeName === "div") {
+            if(e.target.getAttribute('contenteditable') === "false"){ 
+                if (e.button === 0) { // left mouse
+                    selection = {
+                        bubble: e.target,
+                        x: e.target.getBoundingClientRect().x - e.clientX,
+                        y: e.target.getBoundingClientRect().y - e.clientY,
+                        type: "drag"
+                    };
+                } else if (e.button === 2) { // right mouse
+                    const line = createLine(e.clientX, e.clientY);
+                    svg.appendChild(line);
+                    selection = {
+                        line: line,
+                        start: e.target,
+                        type: "line"
+                    };
+                }
             }
         } else {
             if (e.button === 0) { // left mouse
@@ -230,7 +233,7 @@ body.addEventListener('dblclick', e => {
         const x = (e.clientX - 37.5) + "px";
         const y = (e.clientY - 25) + "px";
         const bubble = createBubble(x, y);
-        body.appendChild(bubble);
+        outerContainer.appendChild(bubble);
         bubble.focus();
     } else if (nodeName === "div") {
         e.target.setAttribute('contenteditable', true);
@@ -277,7 +280,7 @@ document.addEventListener("keyup", e => {
                 svg.removeChild(line);
             }
 
-            body.removeChild(bubble);
+            outerContainer.removeChild(bubble);
         }
         save();
     }
@@ -347,8 +350,8 @@ document.addEventListener("keyup", e => {
                     continue;
 
                 const container = document.createElement('div');
-                container.style.top = -33 + row * 33 + "vh";
-                container.style.left = column * 33 + "vw";
+                container.style.top = -324 + row * 324 + "px";
+                container.style.left = column * 576 + "px";
 
                 column++;
                 if (column === 3) {
@@ -405,7 +408,7 @@ document.addEventListener("keyup", e => {
 });
 
 const save = () => {
-    const bubbles = document.querySelectorAll('body > .bubble');
+    const bubbles = document.querySelectorAll('#outer-container > .bubble');
     const bubbleResults = [];
     for (const bubble of bubbles) {
         const result = {
@@ -450,9 +453,9 @@ const save = () => {
 
 const load = (bubbles, lines, target) => {
     try {
-        target = target || body;
+        target = target || document.getElementById('outer-container');
         const svg = target.querySelector('svg');
-        const oldBubbles = target.querySelectorAll('body > .bubble');
+        const oldBubbles = target.querySelectorAll('#outer-container > .bubble');
         for (const bubble of oldBubbles) {
             target.removeChild(bubble);
         }
