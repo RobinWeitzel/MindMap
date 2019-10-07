@@ -126,6 +126,10 @@ let selection = undefined;
             if (end === null || end === selection.start) {
                 svg.removeChild(selection.line);
             } else {
+                const x = end.getBoundingClientRect().x + end.getBoundingClientRect().width / 2;
+                const y = end.getBoundingClientRect().y + end.getBoundingClientRect().height / 2;
+                selection.line.setAttribute("x2", x);
+                selection.line.setAttribute("y2", y);
                 selection.start.lines.start.push(selection.line);
                 end.lines.end.push(selection.line);
                 selection.line.start = selection.start;
@@ -152,10 +156,14 @@ let selection = undefined;
                         bubble: e.target,
                         x: e.target.getBoundingClientRect().x - e.clientX,
                         y: e.target.getBoundingClientRect().y - e.clientY,
+                        center_x: e.target.getBoundingClientRect().width / 2,
+                        center_y: e.target.getBoundingClientRect().height / 2,
                         type: "drag"
                     };
                 } else if (e.button === 2) { // right mouse
-                    const line = createLine(e.clientX, e.clientY);
+                    const x = e.target.getBoundingClientRect().x + e.target.getBoundingClientRect().width / 2;
+                    const y = e.target.getBoundingClientRect().y + e.target.getBoundingClientRect().height / 2;
+                    const line = createLine(x, y);
                     svg.appendChild(line);
                     selection = {
                         line: line,
@@ -193,13 +201,13 @@ let selection = undefined;
             selection.bubble.style.top = y;
 
             for (const line of selection.bubble.lines.start) {
-                line.setAttribute("x1", e.clientX);
-                line.setAttribute("y1", e.clientY);
+                line.setAttribute("x1", e.clientX + selection.x + selection.center_x);
+                line.setAttribute("y1", e.clientY + selection.y + selection.center_y);
             }
 
             for (const line of selection.bubble.lines.end) {
-                line.setAttribute("x2", e.clientX);
-                line.setAttribute("y2", e.clientY);
+                line.setAttribute("x2", e.clientX + selection.x + selection.center_x);
+                line.setAttribute("y2", e.clientY + selection.y + selection.center_y);
             }
         } else if (selection.type === "line") {
             selection.line.setAttribute("x2", e.clientX);
