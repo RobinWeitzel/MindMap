@@ -4,6 +4,8 @@ const svg = document.querySelector('svg');
 const lib = JsonUrl('lzma'); // JsonUrl is added to the window object
 let storageType = "";
 let id;
+let history = [];
+let future = [];
 
 const uuidv4 = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -114,6 +116,14 @@ body.addEventListener('click', e => {
 });
 
 let selection = undefined;
+
+body.oncontextmenu = e => {
+    if (e.target.getAttribute('contenteditable') === "true")
+        return true;
+    else
+        return false;
+};
+
 
 ['mouseup', 'touchend', 'touchcancel'].forEach(evt => {
     body.addEventListener(evt, e => {
@@ -263,7 +273,9 @@ body.addEventListener('dblclick', e => {
 const createNewMap = () => {
     id = uuidv4();
     load([], []);
-    save();
+    history = [];
+    future = [];
+    save(true);
     localStorage.setItem('current', id);
 }
 
@@ -278,7 +290,39 @@ const setColor = (bubble, background, border) => {
 document.addEventListener("keyup", e => {
     const bubble = document.querySelector('.bubble[contenteditable="true"]');
 
-    if (e.keyCode == 46) {
+    if(e.ctrlKey && e.keyCode === 90) { // Ctrl+Z
+        if(history.length === 0)
+            return;
+
+        future.push(window.location.hash.slice(1));
+        const hash = history.pop();
+        lib.decompress(hash).then(result => {
+            load(result.bubbles || [], result.lines || []);
+            
+            localStorage.setItem(id, hash);
+            window.location.replace("#" + hash);
+        });
+
+        return;
+    }
+
+    if(e.ctrlKey && e.keyCode === 89) { // Ctrl+Y
+        if(future.length === 0)
+            return;
+
+        history.push(window.location.hash.slice(1));
+        const hash = future.pop();
+        lib.decompress(hash).then(result => {
+            load(result.bubbles || [], result.lines || []);
+
+            localStorage.setItem(id, hash);
+            window.location.replace("#" + hash);
+        });
+
+        return;
+    }
+
+    if (e.keyCode == 46) { // Delete
         const line = document.querySelector('line[stroke="blue"]');
         if (line !== null) {
             removeElement(line.start.lines.start, line);
@@ -302,7 +346,7 @@ document.addEventListener("keyup", e => {
         save();
     }
 
-    if (e.keyCode === 27) { // escape
+    if (e.keyCode === 27) { // Escape
         const dialog = document.querySelector('.dialog');
         if (dialog)
             body.removeChild(dialog);
@@ -386,6 +430,8 @@ document.addEventListener("keyup", e => {
                     load(result.bubbles || [], result.lines || [], container);
 
                     container.onclick = e => {
+                        history = [];
+                        future = [];
                         load(result.bubbles || [], result.lines || []);
                         localStorage.setItem('current', result.id);
                         id = result.id;
@@ -426,7 +472,7 @@ document.addEventListener("keyup", e => {
     }
 });
 
-const save = () => {
+const save = (skipHistory) => {
     const bubbles = document.querySelectorAll('#outer-container > .bubble');
     const bubbleResults = [];
     for (const bubble of bubbles) {
@@ -464,10 +510,21 @@ const save = () => {
         bubbles: bubbleResults,
         lines: lineResults
     }).then(hash => {
+        if(skipHistory !== true) {
+            const oldHash = window.location.hash.slice(1);
+            
+            if(history.length > 20) 
+                history.shift();
+
+            if(hash !== oldHash) {
+                history.push(oldHash);
+                future = [];
+            }
+        }
+
         localStorage.setItem(id, hash);
         window.location.replace("#" + hash);
     });
-
 }
 
 const load = (bubbles, lines, target) => {
