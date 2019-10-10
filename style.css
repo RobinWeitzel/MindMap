@@ -24,6 +24,7 @@ svg {
     cursor: grab;
     box-sizing: border-box;
     white-space: nowrap;
+    text-align: center;
 }
 
 .bubble[contenteditable='true'] {
