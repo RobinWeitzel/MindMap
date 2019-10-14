@@ -380,6 +380,14 @@ document.addEventListener("keyup", e => {
             setColor(bubble, 'lightyellow', 'yellow');
             save();
             break;
+        case 55:
+            setColor(bubble, 'white', 'white');
+            save();
+            break;
+        case 56:
+            setColor(bubble, 'transparent', 'transparent');
+            save();
+            break;
         case 78: // N: New
             createNewMap();
             if (document.querySelector('.dialog'))
