@@ -1,4 +1,8 @@
 ## This is just a very simplistic web-based mind map.
+
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/RobinWeitzel/MindMap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RobinWeitzel/MindMap/alerts/)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/RobinWeitzel/MindMap.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RobinWeitzel/MindMap/alerts/)
+
 The map is store in your browsers localStorage.
 Therefore it is lost if you clear your cache.
 
